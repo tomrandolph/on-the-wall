@@ -3,5 +3,5 @@ services:
     type: web
     runtime: rust
     plan: free
-    buildCommand: cargo build --release
-    startCommand: cargo run
+    buildCommand: cd server && cargo build --release
+    startCommand: cd server && cargo run
