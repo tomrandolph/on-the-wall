@@ -5,3 +5,5 @@ services:
     plan: free
     buildCommand: cd server && cargo build --release
     startCommand: cd server && cargo run
+databases:
+  - wall-db
