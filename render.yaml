@@ -1,0 +1,7 @@
+services:
+  - name: wall-server
+    type: web
+    runtime: rust
+    plan: free
+    buildCommand: cargo build --release
+    startCommand: cargo run
