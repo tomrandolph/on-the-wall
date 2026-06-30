@@ -15,7 +15,7 @@ async fn main() {
         .max_connections(5)
         .connect(
             env::var("DATABASE_URL")
-                .expect("DATABASE_URL not set")
+                .expect("DATABASE_URL env var not set")
                 .as_str(),
         )
         .await
