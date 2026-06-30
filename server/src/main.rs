@@ -26,7 +26,7 @@ async fn main() {
     sqlx::migrate!("./migrations")
         .run(&pool)
         .await
-        .expect("Failed to run migrations");
+        .expect("Failed to run migrations!");
 
     // build our application with a single route
     let app = Router::new()
