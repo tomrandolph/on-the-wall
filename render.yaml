@@ -1,21 +1,22 @@
 services:
   - name: wall-server
     type: web
-    runtime: rust
+    runtime: image
     plan: free
-    buildCommand: cd server && cargo build --release
-    # run the compiled release binary, not `cargo run` (which rebuilds in debug)
-    startCommand: cd server && ./target/release/server
+    image:
+      # image is built and pushed by GitHub Actions (.github/workflows/ci.yml)
+      url: ghcr.io/tomrandolph/on-the-wall:latest
+      # if the GHCR package is PRIVATE, add a Registry Credential named "ghcr"
+      # in the Render dashboard and uncomment:
+      # creds:
+      #   fromRegistryCreds:
+      #     name: ghcr
     envVars:
       # inject the managed database connection string into the service
       - key: DATABASE_URL
         fromDatabase:
           name: wall-db
           property: connectionString
-      # build with the committed .sqlx offline query cache so the
-      # query! macros don't need a live DB at compile time
-      - key: SQLX_OFFLINE
-        value: "true"
 databases:
   - name: wall-db
     plan: free

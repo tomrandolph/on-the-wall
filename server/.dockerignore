@@ -1,0 +1,7 @@
+# keep the build context small and free of host-only / secret files
+target/
+.env
+.git
+.gitignore
+Dockerfile
+.dockerignore
