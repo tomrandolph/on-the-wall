@@ -20,13 +20,24 @@ async fn main() {
         )
         .await
         .unwrap();
+
+    // run any pending migrations on startup (idempotent — sqlx tracks
+    // applied migrations in the _sqlx_migrations table)
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .expect("Failed to run migrations");
+
     // build our application with a single route
     let app = Router::new()
         .route("/posts", get(list_posts))
         .with_state(pool);
 
-    // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    // Render assigns the port via $PORT; fall back to 3000 for local dev
+    let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}"))
+        .await
+        .unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 struct AuthenticatedUser {

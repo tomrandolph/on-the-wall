@@ -4,6 +4,18 @@ services:
     runtime: rust
     plan: free
     buildCommand: cd server && cargo build --release
-    startCommand: cd server && cargo run
+    # run the compiled release binary, not `cargo run` (which rebuilds in debug)
+    startCommand: cd server && ./target/release/server
+    envVars:
+      # inject the managed database connection string into the service
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wall-db
+          property: connectionString
+      # build with the committed .sqlx offline query cache so the
+      # query! macros don't need a live DB at compile time
+      - key: SQLX_OFFLINE
+        value: "true"
 databases:
   - name: wall-db
+    plan: free

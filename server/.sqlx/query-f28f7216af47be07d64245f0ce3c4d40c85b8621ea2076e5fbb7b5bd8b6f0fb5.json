@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT posts.content, users.name\n        FROM posts\n        INNER JOIN users ON (users.id = posts.posted_by)\n        WHERE posted_to = $1\n        ORDER BY posts.posted_at DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "f28f7216af47be07d64245f0ce3c4d40c85b8621ea2076e5fbb7b5bd8b6f0fb5"
+}
