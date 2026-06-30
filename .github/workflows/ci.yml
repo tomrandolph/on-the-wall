@@ -86,6 +86,6 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Trigger Render deploy
-        run: echo $RENDER_DEPLOY_HOOK && curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
