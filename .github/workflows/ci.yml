@@ -11,6 +11,23 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
+  # ---- TEMP debug: figure out where RENDER_DEPLOY_HOOK actually lives ----
+  debug-secret:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe deploy hook presence (no value leaked)
+        env:
+          H: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          echo "is it an Actions *secret*?   ${{ secrets.RENDER_DEPLOY_HOOK != '' }}"
+          echo "is it an Actions *variable*? ${{ vars.RENDER_DEPLOY_HOOK != '' }}"
+          echo "secret length (0 = absent):  ${#H}"
+          case "$H" in
+            https://api.render.com/deploy/*) echo "format: looks like a Render deploy hook" ;;
+            "") echo "format: EMPTY" ;;
+            *) echo "format: present but NOT a render deploy URL" ;;
+          esac
+
   # ---- test gate: validate the code + offline cache before we publish anything ----
   test:
     runs-on: ubuntu-latest
