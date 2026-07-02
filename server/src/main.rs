@@ -1,11 +1,66 @@
+mod auth;
+
+use askama::Template;
 use axum::extract::FromRequestParts;
 use axum::http::StatusCode;
-use axum::{Router, extract::State, routing::get};
+use axum::response::{Html, IntoResponse, Redirect};
+use axum::{Router, extract::Query, extract::State, routing::get};
 use dotenvy::dotenv;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 use std::env;
 use std::result::Result;
+
+#[derive(Template)]
+#[template(path = "root.html")]
+struct RootTemplate {
+    title: &'static str,
+}
+
+async fn root() -> impl IntoResponse {
+    let root = RootTemplate { title: "title" };
+    (StatusCode::OK, Html(root.render().unwrap()))
+}
+
+#[derive(Template)]
+#[template(path = "login.html")]
+struct LoginTemplate;
+
+async fn login() -> impl IntoResponse {
+    (StatusCode::OK, Html(LoginTemplate.render().unwrap()))
+}
+
+async fn auth_login() -> Redirect {
+    let client_id = env::var("WORKOS_CLIENT_ID").expect("WORKOS_CLIENT_ID not set");
+    let redirect_uri = env::var("WORKOS_REDIRECT_URI").expect("WORKOS_REDIRECT_URI not set");
+
+    let url = url::Url::parse_with_params(
+        "https://api.workos.com/user_management/authorize",
+        &[
+            ("client_id", client_id.as_str()),
+            ("redirect_uri", redirect_uri.as_str()),
+            ("response_type", "code"),
+            ("provider", "authkit"), // hosted AuthKit page: shows Magic Auth + any social you enabled
+        ],
+    )
+    .expect("valid authorize url");
+
+    println!("{url:?}");
+
+    Redirect::to(url.as_str())
+}
+
+#[derive(Deserialize)]
+struct AuthCallbackCode {
+    code: String,
+}
+
+async fn auth_callback(Query(AuthCallbackCode { code }): Query<AuthCallbackCode>) -> Redirect {
+    println!("{code:?}");
+    let user = auth::auth_code_to_user(code).await;
+    println!("{user:?}");
+    Redirect::to("/")
+}
 
 #[tokio::main]
 async fn main() {
@@ -31,6 +86,10 @@ async fn main() {
     // build our application with a single route
     let app = Router::new()
         .route("/posts", get(list_posts))
+        .route("/login", get(login))
+        .route("/", get(root))
+        .route("/auth/login", get(auth_login))
+        .route("/auth/callback", get(auth_callback))
         .with_state(pool);
 
     // Render assigns the port via $PORT; fall back to 3000 for local dev
